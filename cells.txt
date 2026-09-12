@@ -1,0 +1,172 @@
+--- Code Cell 3 ---
+import pandas as pd
+import numpy as np
+
+DATA_PATH = "../data/RT_IOT2022"
+
+df = pd.read_csv(DATA_PATH)
+df.head()
+
+--- Code Cell 5 ---
+print("Dataset shape:", df.shape)
+print("\nNumber of columns:", len(df.columns))
+print("\nColumn names:")
+print(df.columns.tolist())
+
+--- Code Cell 6 ---
+df.info()
+
+--- Code Cell 7 ---
+df.describe(include="all").T
+
+--- Code Cell 9 ---
+missing_values = df.isnull().sum()
+missing_values_sorted = missing_values.sort_values(ascending=False)
+print("Missing values per column:")
+print(missing_values_sorted[missing_values_sorted > 0] if missing_values_sorted.sum() > 0 else "No missing values found")
+
+--- Code Cell 11 ---
+duplicate_count = df.duplicated().sum()
+print(f"Number of duplicate rows: {duplicate_count}")
+print(f"Percentage of duplicate rows: {duplicate_count / len(df) * 100:.2f}%")
+
+--- Code Cell 13 ---
+print("Data types per column:")
+print(df.dtypes)
+
+--- Code Cell 15 ---
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+constant_cols = []
+near_constant_cols = []
+
+for col in numeric_cols:
+    unique_count = df[col].nunique()
+    if unique_count == 1:
+        constant_cols.append(col)
+    elif unique_count <= 2:
+        near_constant_cols.append((col, unique_count))
+
+print(f"Constant columns (zero variance): {len(constant_cols)}")
+if constant_cols:
+    print(constant_cols)
+
+print(f"\nNear-constant columns (≤2 unique values): {len(near_constant_cols)}")
+if near_constant_cols:
+    for col, count in near_constant_cols:
+        print(f"  {col}: {count} unique values")
+
+--- Code Cell 17 ---
+print("Checking for index-like columns:")
+
+if 'Unnamed: 0' in df.columns:
+    unnamed_unique = df['Unnamed: 0'].nunique()
+    unnamed_range = df['Unnamed: 0'].max() - df['Unnamed: 0'].min() + 1
+    print(f"Unnamed: 0 - Unique values: {unnamed_unique}, Range: {unnamed_range}")
+    if unnamed_unique == len(df) and unnamed_range == len(df):
+        print("  -> Appears to be a row index")
+
+all_unique_cols = []
+for col in df.columns:
+    if df[col].nunique() == len(df):
+        all_unique_cols.append(col)
+
+print(f"\nColumns with all unique values: {len(all_unique_cols)}")
+if all_unique_cols:
+    print(all_unique_cols)
+
+--- Code Cell 19 ---
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+print("Statistical summary for numerical columns:")
+print(df[numeric_cols].describe().T)
+
+--- Code Cell 20 ---
+print("Checking for extreme values in key columns:")
+
+key_columns = ['flow_duration', 'fwd_pkts_tot', 'bwd_pkts_tot']
+for col in key_columns:
+    if col in df.columns:
+        q1 = df[col].quantile(0.25)
+        q3 = df[col].quantile(0.75)
+        iqr = q3 - q1
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+        outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
+        print(f"\n{col}:")
+        print(f"  IQR range: [{lower_bound:.2f}, {upper_bound:.2f}]")
+        print(f"  Outliers: {len(outliers)} ({len(outliers)/len(df)*100:.2f}%)")
+        print(f"  Min: {df[col].min():.2f}, Max: {df[col].max():.2f}")
+
+--- Code Cell 23 ---
+df_cleaned = df.copy()
+
+print("Original shape:", df_cleaned.shape)
+
+if 'Unnamed: 0' in df_cleaned.columns:
+    df_cleaned = df_cleaned.drop(columns=['Unnamed: 0'])
+    print("Removed: Unnamed: 0 (index column)")
+
+numeric_cols_cleaned = df_cleaned.select_dtypes(include=[np.number]).columns
+constant_cols_cleaned = []
+for col in numeric_cols_cleaned:
+    if df_cleaned[col].nunique() == 1:
+        constant_cols_cleaned.append(col)
+
+if constant_cols_cleaned:
+    df_cleaned = df_cleaned.drop(columns=constant_cols_cleaned)
+    print(f"Removed constant columns: {constant_cols_cleaned}")
+else:
+    print("No constant columns found")
+
+duplicate_count_before = df_cleaned.duplicated().sum()
+print(f"\nDuplicate rows before removal: {duplicate_count_before}")
+
+if duplicate_count_before > 0:
+    df_cleaned = df_cleaned.drop_duplicates()
+    print(f"Removed {duplicate_count_before} duplicate rows")
+
+print("Cleaned shape:", df_cleaned.shape)
+
+--- Code Cell 25 ---
+print("=== Cleaned Dataset Verification ===")
+print(f"Final shape: {df_cleaned.shape}")
+print(f"Final column count: {len(df_cleaned.columns)}")
+
+missing_after = df_cleaned.isnull().sum().sum()
+print(f"Missing values: {missing_after}")
+
+duplicates_after = df_cleaned.duplicated().sum()
+print(f"Duplicate rows: {duplicates_after}")
+
+print(f"\nData types summary:")
+print(df_cleaned.dtypes.value_counts())
+
+--- Code Cell 26 ---
+print("Target columns preserved:")
+print(f"  Attack_type (classification): {df_cleaned['Attack_type'].nunique()} unique values")
+print(f"  flow_duration (regression): min={df_cleaned['flow_duration'].min():.2f}, max={df_cleaned['flow_duration'].max():.2f}")
+
+print(f"\nAttack_type distribution:")
+print(df_cleaned['Attack_type'].value_counts())
+
+--- Code Cell 27 ---
+print("Numerical summary of cleaned dataset:")
+print(df_cleaned.describe().T)
+
+--- Code Cell 29 ---
+cleaned_path = "../data/RT_IOT2022_cleaned.csv"
+df_cleaned.to_csv(cleaned_path, index=False)
+print(f"Cleaned dataset saved to: {cleaned_path}")
+
+--- Code Cell 31 ---
+df_reloaded = pd.read_csv(cleaned_path)
+print(f"Reloaded dataset shape: {df_reloaded.shape}")
+print(f"Original cleaned shape: {df_cleaned.shape}")
+
+if df_reloaded.shape == df_cleaned.shape:
+    print("\nShapes match - verification successful")
+else:
+    print("\nShape mismatch - verification failed")
+
+print(f"\nReloaded columns match: {list(df_reloaded.columns) == list(df_cleaned.columns)}")
+
