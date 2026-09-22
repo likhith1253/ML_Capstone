@@ -11,7 +11,7 @@ ML_Capstone/
 │   ├── classification_feature_relationships.png
 │   ├── classification_knn_tuning_curve.png
 │   ├── classification_model_comparison.png
-│   ├── classification_random_forest_feature_importance.png
+│   ├── classification_naive_bayes_distribution.png
 │   ├── classification_roc_curves.png
 │   ├── classification_target_distribution.png
 │   ├── regression_baseline_comparison.png
@@ -142,8 +142,8 @@ The Support Vector Machine (SVC) with an RBF kernel ($C=10$) delivered the highe
 ![Decision Tree Architecture](assets/classification_decision_tree_architecture.png)  
 *Pruned Decision Tree Structural Architecture.*
 
-![Random Forest Feature Importance](assets/classification_random_forest_feature_importance.png)  
-*Random Forest Gini Impurity feature importances across seed morphometry features.*
+![Gaussian Naive Bayes Distribution](assets/classification_naive_bayes_distribution.png)  
+*Gaussian Naive Bayes class-conditional feature distribution profiles.*
 
 ![Classification Model Comparison](assets/classification_model_comparison.png)  
 *Classification benchmark comparison across Accuracy, Weighted F1, Macro F1, and Multiclass ROC-AUC.*
@@ -161,7 +161,7 @@ The official performance metrics evaluated strictly on the 2,709 held-out test s
 | Logistic Regression | 0.9206 | 0.9213 | 0.9206 | 0.9208 | 0.9311 | 0.9936 | 0.9244 | `{'C': 10.0}` |
 | K-Nearest Neighbors (KNN) | 0.9169 | 0.9177 | 0.9169 | 0.9171 | 0.9293 | 0.9880 | 0.9232 | `{'n_neighbors': 13}` |
 | Decision Tree Classifier | 0.9051 | 0.9051 | 0.9051 | 0.9049 | 0.9187 | 0.9629 | 0.9055 | `{'max_depth': 12, 'min_samples_split': 10}` |
-| Naive Bayes (Gaussian) | 0.7545 | 0.7556 | 0.7545 | 0.7521 | 0.7571 | 0.9622 | N/A | Default (`var_smoothing=1e-9`) |
+| Naive Bayes (Gaussian) | 0.7545 | 0.7556 | 0.7545 | 0.7521 | 0.7571 | 0.9622 | N/A | `Default (var_smoothing=1e-9)` |
 
 ## Clustering Track
 
