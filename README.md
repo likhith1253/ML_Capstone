@@ -69,9 +69,9 @@ The Support Vector Machine (SVC) with an RBF kernel ($C=10$) delivered the highe
 |---|---|---|---|---|---|---|---|---|
 | Support Vector Machine (SVC) | 0.9236 | 0.9237 | 0.9236 | 0.9236 | 0.9345 | 0.9931 | 0.9322 | `{'C': 10, 'kernel': 'rbf'}` |
 | Logistic Regression | 0.9206 | 0.9213 | 0.9206 | 0.9208 | 0.9311 | 0.9936 | 0.9244 | `{'C': 10.0}` |
-| Random Forest Classifier | 0.9177 | 0.9177 | 0.9177 | 0.9176 | 0.9296 | 0.9921 | 0.9234 | `{'max_depth': 15, 'n_estimators': 100}` |
 | K-Nearest Neighbors (KNN) | 0.9169 | 0.9177 | 0.9169 | 0.9171 | 0.9293 | 0.9880 | 0.9232 | `{'n_neighbors': 13}` |
 | Decision Tree Classifier | 0.9051 | 0.9051 | 0.9051 | 0.9049 | 0.9187 | 0.9629 | 0.9055 | `{'max_depth': 12, 'min_samples_split': 10}` |
+| Naive Bayes (Gaussian) | 0.7545 | 0.7556 | 0.7545 | 0.7521 | 0.7571 | 0.9622 | N/A | Default (`var_smoothing=1e-9`) |
 
 ## Clustering Track
 
