@@ -1,6 +1,6 @@
 # ML Capstone
 
-This repository delivers the Machine Learning Capstone project for course 23CSE301, covering end-to-end Machine Learning pipelines spanning Regression, Classification, and Clustering tracks. The team developed, preprocessed, engineered domain features, and evaluated machine learning models across two real-world datasets: the RT-IoT2022 Network Traffic Dataset for continuous network flow duration prediction and the UCI Dry Bean Dataset for multiclass seed cultivar classification. Every pipeline enforces strict data leakage prevention, cross-validated hyperparameter optimization, and isolated held-out test set benchmark evaluations.
+This repository contains the Machine Learning Capstone project for course 23CSE301. It currently covers the regression and classification tracks (clustering is planned for Review 2) on two datasets: the RT-IoT2022 network traffic dataset for predicting flow duration, and the UCI Dry Bean dataset for classifying bean varieties. In every pipeline the scalers and encoders are fitted on the training data only, hyperparameters are tuned with cross-validation on the training set, and the models are scored on a held-out test set.
 
 ## Project Structure
 
@@ -52,13 +52,13 @@ The Decision Tree Regressor achieved the best overall performance on the held-ou
 *Target Distribution: Raw vs. Log1p Transformed flow_duration on training data.*
 
 ![Baseline Comparison](assets/regression_baseline_comparison.png)  
-*Comprehensive 4-panel baseline model comparison across R², RMSE, MAE, and training latency.*
+*4-panel baseline model comparison across R², RMSE, MAE, and training latency.*
 
 ![Hyperparameter Tuning Impact](assets/regression_hyperparameter_tuning_impact.png)  
 *Hyperparameter tuning impact across R², RMSE, and MAE for Random Forest, Gradient Boosting, and Ridge.*
 
-![Definitive Model Ranking](assets/regression_final_model_ranking.png)  
-*Definitive final model ranking and Pareto efficiency trade-off across all 10 evaluated regression algorithms.*
+![Final Model Ranking](assets/regression_final_model_ranking.png)  
+*Final model ranking and fit-time trade-off across all 10 evaluated regression algorithms.*
 
 ![5-Fold Cross Validation Dashboard](assets/regression_cross_validation_dashboard.png)  
 *5-Fold Stratified Cross-Validation dashboard comparing Decision Tree and Random Forest (Tuned).*
@@ -68,20 +68,20 @@ The Decision Tree Regressor achieved the best overall performance on the held-ou
 
 ### Implemented Regression Algorithms & Results
 
-The complete metric results across all 10 evaluated regression algorithms on the 23,585 held-out test set records are summarized below:
+Test-set results for all 10 regression algorithms (23,585 held-out rows):
 
 | Model | Test $R^2$ | Test RMSE (s) | Test MAE (s) | Fit Time (s) | Status |
 |---|---|---|---|---|---|
-| Decision Tree | 0.621046 | 36.116686 | 1.324463 | 1.502395 | Baseline |
-| Random Forest (Tuned) | 0.373990 | 46.420050 | 1.472612 | 23.715189 | Tuned |
-| KNN ($k=5$, scaled) | -0.017559 | 59.182686 | 1.603483 | 0.125023 | Baseline |
-| Gradient Boosting (Tuned) | -0.146636 | 62.824299 | 1.975976 | 28.741635 | Tuned |
-| ElasticNet ($\alpha=1.0, l_1=0.5$) | -2.080283 | 102.969862 | 3.247794 | 0.768008 | Baseline |
-| Ridge (Tuned) | -4.338002 | 135.551470 | 4.662105 | 0.181007 | Tuned |
-| Linear Regression (OLS) | -4.436240 | 136.793096 | 4.655164 | 0.441648 | Baseline |
-| SVR (linear, $C=1.0$) | -6.590373 | 161.639094 | 64.717792 | 14.224364 | Baseline |
-| Lasso ($\alpha=1.0$) | -63.845366 | 472.448333 | 7.038223 | 6.430348 | Baseline |
-| Polynomial Regression (deg=2) | -3020.853740 | 3225.162260 | 23.537741 | 0.121008 | Baseline |
+| Decision Tree | 0.621046 | 36.116686 | 1.324463 | 1.910068 | Baseline |
+| Random Forest (Tuned) | 0.373990 | 46.420050 | 1.472612 | 24.378544 | Tuned |
+| KNN ($k=5$, scaled) | -0.017559 | 59.182686 | 1.603483 | 0.120974 | Baseline |
+| Gradient Boosting (Tuned) | -0.146636 | 62.824299 | 1.975976 | 44.683826 | Tuned |
+| ElasticNet ($\alpha=1.0, l_1=0.5$) | -2.080283 | 102.969862 | 3.247794 | 0.801898 | Baseline |
+| Ridge (Tuned) | -4.338002 | 135.551470 | 4.662105 | 0.363927 | Tuned |
+| Linear Regression (OLS) | -4.436240 | 136.793096 | 4.655164 | 0.395646 | Baseline |
+| SVR (linear, $C=1.0$) | -6.590373 | 161.639094 | 64.717792 | 22.479963 | Baseline |
+| Lasso ($\alpha=1.0$) | -63.845366 | 472.448333 | 7.038223 | 10.456096 | Baseline |
+| Polynomial Regression (deg=2) | -3020.853740 | 3225.162260 | 23.537741 | 0.217461 | Baseline |
 
 ### Hyperparameter Tuning Comparison
 
@@ -95,16 +95,16 @@ For algorithms subjected to 5-fold cross-validated grid search tuning on `X_trai
 
 ### 5-Fold Stratified Cross-Validation Breakdown
 
-Cross-validation metrics computed strictly on continuous quantile-binned training folds (`y_train`) for the top two regression models:
+Cross-validation metrics for the top two regression models, computed on quantile-stratified folds of the training set (`y_train`):
 
 | Model | Fold | $R^2$ | RMSE (s) | MAE (s) |
 |---|---|---|---|---|
-| Decision Tree (Top 1) | Fold 1 | 0.573214 | 82.529841 | 1.803734 |
-| Decision Tree (Top 1) | Fold 2 | 0.771148 | 58.118247 | 1.402927 |
-| Decision Tree (Top 1) | Fold 3 | 0.741022 | 97.802115 | 2.418291 |
-| Decision Tree (Top 1) | Fold 4 | 0.384812 | 48.012589 | 1.602812 |
-| Decision Tree (Top 1) | Fold 5 | 0.940428 | 30.081245 | 1.192014 |
-| **Decision Tree Mean $\pm$ Std** | **Mean** | **0.6821 $\pm$ 0.1795** | **63.3088 $\pm$ 31.9612** | **1.6840 $\pm$ 0.4215** |
+| Decision Tree (Top 1) | Fold 1 | 0.529901 | 109.551544 | 2.910552 |
+| Decision Tree (Top 1) | Fold 2 | 0.515672 | 90.699198 | 1.689703 |
+| Decision Tree (Top 1) | Fold 3 | 0.931156 | 55.179252 | 1.816673 |
+| Decision Tree (Top 1) | Fold 4 | 0.565770 | 28.737247 | 1.318404 |
+| Decision Tree (Top 1) | Fold 5 | 0.868177 | 32.390331 | 1.434421 |
+| **Decision Tree Mean $\pm$ Std** | **Mean** | **0.6821 $\pm$ 0.1795** | **63.3115 $\pm$ 31.9558** | **1.8340 $\pm$ 0.5667** |
 | Random Forest (Tuned) | Fold 1 | 0.580965 | 103.430655 | 2.828873 |
 | Random Forest (Tuned) | Fold 2 | 0.766675 | 62.952632 | 1.409198 |
 | Random Forest (Tuned) | Fold 3 | 0.742167 | 106.785129 | 2.471783 |
@@ -114,7 +114,7 @@ Cross-validation metrics computed strictly on continuous quantile-binned trainin
 
 ## Classification Track
 
-The classification track categorizes 7 registered dry bean cultivars using high-resolution image morphometry from `Dry_Bean_Dataset.csv`. Starting with 13,611 raw records, data cleaning removed 68 exact duplicate rows (0.50%), retaining 13,543 cleaned samples across 17 features. Biological outlier analysis preserved large-seeded varieties (such as `BOMBAY`). An engineered geometric descriptor, `Area_Perimeter_Ratio` (`Area / Perimeter`), was incorporated. A stratified 80/20 train/test split yielded 10,834 training samples and 2,709 held-out test samples, with `StandardScaler` fitted strictly on `X_train`.
+The classification track categorizes 7 registered dry bean cultivars using high-resolution image morphometry from `Dry_Bean_Dataset.csv`. Starting with 13,611 raw records, data cleaning removed 68 exact duplicate rows (0.50%), retaining 13,543 cleaned samples across 17 features. No global outlier filter was applied, so large-seeded varieties such as `BOMBAY` were kept. An engineered geometric descriptor, `Area_Perimeter_Ratio` (`Area / Perimeter`), was incorporated. A stratified 80/20 train/test split yielded 10,834 training samples and 2,709 held-out test samples, with `StandardScaler` fitted strictly on `X_train`.
 
 ### Final Class Breakdown (13,543 Cleaned Records)
 
@@ -153,7 +153,7 @@ The Support Vector Machine (SVC) with an RBF kernel ($C=10$) delivered the highe
 
 ### Implemented Classification Algorithms & Results
 
-The official performance metrics evaluated strictly on the 2,709 held-out test set samples are reported below:
+Test-set results for the five classifiers (2,709 held-out samples):
 
 | Model | Test Accuracy | Weighted Precision | Weighted Recall | Weighted F1 | Macro F1 | ROC-AUC | Training CV Score | Best Parameters (CV) |
 |---|---|---|---|---|---|---|---|---|
@@ -225,11 +225,7 @@ Project dependencies are specified in `requirements.txt`. Key packages include:
 
 ## Highlights
 
-* **Leakage-Free Feature Selection**: Removed 30 temporal, inter-arrival time (`*iat*`), active/idle duration, and packet rate features from the RT-IoT2022 dataset to prevent data leakage prior to continuous duration modeling.
-* **Continuous Quantile Stratification**: Implemented quantile target binning (`pd.qcut`) on `y_train` to enable 5-fold `StratifiedKFold` cross-validation for an extraordinarily right-skewed regression target ($121.03$ skewness).
-* **Biological Cultivar Preservation**: Retained authentic large-seeded bean cultivars (such as `BOMBAY`) rather than truncating legitimate specimens with global IQR filters, combined with isolated `StandardScaler` fitting on training splits.
-* **Domain Feature Engineering**: Formulated `total_packets` (`fwd_pkts_tot + bwd_pkts_tot`) for IoT flow duration and `Area_Perimeter_Ratio` (`Area / Perimeter`) for seed morphometry to enhance predictive feature representation.
-
-## Acknowledgements
-
-AI coding assistance (Antigravity / LLM tools) was utilized during development for code structure optimization, plotting routines, and formatting notebook outputs.
+* **Leakage control**: Removed 30 temporal, inter-arrival time (`*iat*`), active/idle duration, and packet rate features from the RT-IoT2022 dataset to prevent data leakage prior to continuous duration modeling.
+* **Stratified folds for a continuous target**: Used quantile target binning (`pd.qcut`) on `y_train` to enable 5-fold `StratifiedKFold` cross-validation for a highly right-skewed regression target ($121.03$ skewness).
+* **Keeping large bean varieties**: No global IQR filter is applied in the modelling notebook, since it would remove large beans such as `BOMBAY`. `StandardScaler` is fitted on the training split only.
+* **Engineered features**: Added `total_packets` (`fwd_pkts_tot + bwd_pkts_tot`) for IoT flow duration and `Area_Perimeter_Ratio` (`Area / Perimeter`) for seed morphometry.
