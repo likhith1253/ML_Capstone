@@ -34,6 +34,10 @@ ML_Capstone/
 │   ├── regression_preprocessing.ipynb
 │   ├── regression.ipynb
 │   └── regression_split_indices.json
+├── app/
+│   ├── app.py
+│   ├── core.py
+│   └── pages_*.py
 ├── README.md
 └── requirements.txt
 ```
@@ -215,6 +219,17 @@ Run the notebooks in the following order to ensure data preprocessing pipelines 
    * Run `classification/classification.ipynb` for the Dry Bean EDA, preprocessing, 80/20 stratified split, cross-validated hyperparameter searches, confusion matrices and ROC curves.
 3. **Clustering Track**:
    * Run `clustering/clustering.ipynb` for the Hotel Booking Demand EDA, preprocessing, K-Means, Agglomerative clustering, metrics and cluster plots.
+
+## Dashboard
+
+An interactive Streamlit dashboard for all three tracks lives in `app/`. It has sliders for trying your own bean, network flow or hotel booking on the trained models, animated cluster views, model comparison charts and diagnostics.
+
+```bash
+pip install -r requirements.txt
+streamlit run app/app.py
+```
+
+The first launch trains the models with the same cleaning, split and seeds as the notebooks and caches them in `app/.cache/` (a few minutes; `python app/build.py` does it ahead of time). New models are added with one line in `CLASSIFIERS` or `REGRESSORS` in `app/core.py`. Classification currently has 8 of the 10 required models.
 
 ## Requirements
 
