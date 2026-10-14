@@ -1,6 +1,6 @@
 # ML Capstone
 
-This repository contains the Machine Learning Capstone project for course 23CSE301. It currently covers the regression and classification tracks (clustering is planned for Review 2) on two datasets: the RT-IoT2022 network traffic dataset for predicting flow duration, and the UCI Dry Bean dataset for classifying bean varieties. In every pipeline the scalers and encoders are fitted on the training data only, hyperparameters are tuned with cross-validation on the training set, and the models are scored on a held-out test set.
+This repository contains the Machine Learning Capstone project for course 23CSE301. It covers the regression, classification and clustering tracks on three datasets: the RT-IoT2022 network traffic dataset for predicting flow duration, the UCI Dry Bean dataset for classifying bean varieties, and the Hotel Booking Demand dataset for clustering bookings. In every pipeline the scalers and encoders are fitted on the training data only, hyperparameters are tuned with cross-validation on the training set, and the models are scored on a held-out test set.
 
 ## Project Structure
 
@@ -23,7 +23,10 @@ ML_Capstone/
 ├── classification/
 │   ├── classification_preprocessing.ipynb
 │   └── classification.ipynb
+├── clustering/
+│   └── clustering.ipynb
 ├── data/
+│   ├── hotel_bookings.csv
 │   ├── Dry_Bean_Dataset.csv
 │   ├── RT_IOT2022
 │   └── RT_IOT2022_cleaned.csv
@@ -165,7 +168,14 @@ Test-set results for the five classifiers (2,709 held-out samples):
 
 ## Clustering Track
 
-The unsupervised clustering track is planned for the next milestone (Review 2).
+The clustering track groups hotel bookings from the Hotel Booking Demand dataset (Antonio, Almeida & Nunes, 2019; `data/hotel_bookings.csv`, 119,390 rows and 32 columns) without using any labels. The outcome columns (`is_canceled`, `reservation_status`, `reservation_status_date`) are excluded from the features and only used afterwards to describe the clusters. After removing duplicates and invalid rows (87,229 left), a random sample of 15,000 bookings was log-transformed, scaled and one-hot encoded into 48 features, and used for both algorithms. Everything is in `clustering/clustering.ipynb`.
+
+| Algorithm | Configuration | Silhouette | Davies-Bouldin | Calinski-Harabasz | Cluster sizes |
+|---|---|---|---|---|---|
+| K-Means | k=4 | 0.2087 | 1.4673 | 1,469.03 | 1,398 / 12,807 / 624 / 171 |
+| Agglomerative | Ward linkage, 4 clusters | 0.4529 | 1.3782 | 1,345.44 | 13,707 / 980 / 171 / 142 |
+
+The elbow curve has no sharp elbow, so k=4 was picked using the silhouette and Davies-Bouldin scores. Both methods give one dominant cluster plus a few small ones, and the three metrics do not agree on a single best method.
 
 ## Setup & How to Run
 
@@ -202,8 +212,9 @@ Run the notebooks in the following order to ensure data preprocessing pipelines 
    * Run `regression/regression_preprocessing.ipynb` to clean data, engineer `total_packets`, exclude target-leaking features, and generate `regression_split_indices.json`.
    * Run `regression/regression.ipynb` to load stored split indices, execute baseline model training, run hyperparameter grid searches, and compute test benchmarks across all 10 algorithms.
 2. **Classification Track**:
-   * Run `classification/classification_preprocessing.ipynb` for exploratory data analysis, class-grouped quantile inspection, duplicate removal, and scaling validation.
-   * Run `classification/classification.ipynb` to load `Dry_Bean_Dataset.csv`, execute 80/20 stratified splitting, run cross-validated hyperparameter grid searches, and generate confusion matrices and multiclass ROC curves.
+   * Run `classification/classification.ipynb` for the Dry Bean EDA, preprocessing, 80/20 stratified split, cross-validated hyperparameter searches, confusion matrices and ROC curves.
+3. **Clustering Track**:
+   * Run `clustering/clustering.ipynb` for the Hotel Booking Demand EDA, preprocessing, K-Means, Agglomerative clustering, metrics and cluster plots.
 
 ## Requirements
 
@@ -216,6 +227,7 @@ Project dependencies are specified in `requirements.txt`. Key packages include:
 * `seaborn` (>= 0.12.0)
 * `ipympl` (>= 0.9.0)
 * `ipython` (>= 8.0.0)
+* `scipy` (>= 1.10.0)
 
 ## Team
 
