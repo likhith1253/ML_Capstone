@@ -21,7 +21,6 @@ ML_Capstone/
 │   ├── regression_flow_duration_distribution.png
 │   └── regression_hyperparameter_tuning_impact.png
 ├── classification/
-│   ├── classification_preprocessing.ipynb
 │   └── classification.ipynb
 ├── clustering/
 │   └── clustering.ipynb
@@ -31,13 +30,15 @@ ML_Capstone/
 │   ├── RT_IOT2022
 │   └── RT_IOT2022_cleaned.csv
 ├── regression/
-│   ├── regression_preprocessing.ipynb
 │   ├── regression.ipynb
 │   └── regression_split_indices.json
 ├── app/
 │   ├── app.py
+│   ├── build.py
 │   ├── core.py
-│   └── pages_*.py
+│   ├── theme.py
+│   ├── pages_*.py
+│   └── .cache/
 ├── README.md
 └── requirements.txt
 ```
@@ -133,12 +134,12 @@ The classification track categorizes 7 registered dry bean cultivars using high-
 * **BARBUNYA**: 1,322 samples (9.76%)
 * **BOMBAY**: 522 samples (3.85%)
 
-The Support Vector Machine (SVC) with an RBF kernel ($C=10$) delivered the highest accuracy on the held-out test set, attaining **92.36% Test Accuracy**, **0.9236 Weighted F1**, **0.9345 Macro F1**, and **0.9931 Multiclass ROC-AUC**.
+The Multi-Layer Perceptron (MLP) Classifier delivered the highest overall accuracy on the held-out test set, attaining **95.41% Test Accuracy**, **0.9542 Weighted F1**, **0.9624 Macro F1**, and **0.9978 Multiclass ROC-AUC**.
 
 ### Output Visualizations
 
 ![Class Distribution](assets/classification_target_distribution.png)  
-*Dry Bean class distribution across the 13,543 cleaned dataset records.*
+*Dry Bean class distribution across the cleaned dataset records.*
 
 ![Feature Relationships](assets/classification_feature_relationships.png)  
 *Morphological feature relationships: Area vs. Perimeter and Major vs. Minor Axis Length.*
@@ -156,19 +157,29 @@ The Support Vector Machine (SVC) with an RBF kernel ($C=10$) delivered the highe
 *Classification benchmark comparison across Accuracy, Weighted F1, Macro F1, and Multiclass ROC-AUC.*
 
 ![Multiclass ROC Curves](assets/classification_roc_curves.png)  
-*Multiclass One-vs-Rest ROC curves for the top-performing Support Vector Machine (SVC).*
+*Multiclass One-vs-Rest ROC curves for the top-performing Multi-Layer Perceptron (MLP).*
 
-### Implemented Classification Algorithms & Results
+### Implemented Classification Algorithms & Results (All 10 Models)
 
-Test-set results for the five classifiers (2,709 held-out samples):
+Test-set results for all 10 classification algorithms evaluated on the held-out test set:
 
-| Model | Test Accuracy | Weighted Precision | Weighted Recall | Weighted F1 | Macro F1 | ROC-AUC | Training CV Score | Best Parameters (CV) |
-|---|---|---|---|---|---|---|---|---|
-| Support Vector Machine (SVC) | 0.9236 | 0.9237 | 0.9236 | 0.9236 | 0.9345 | 0.9931 | 0.9322 | `{'C': 10, 'kernel': 'rbf'}` |
-| Logistic Regression | 0.9206 | 0.9213 | 0.9206 | 0.9208 | 0.9311 | 0.9936 | 0.9244 | `{'C': 10.0}` |
-| K-Nearest Neighbors (KNN) | 0.9169 | 0.9177 | 0.9169 | 0.9171 | 0.9293 | 0.9880 | 0.9232 | `{'n_neighbors': 13}` |
-| Decision Tree Classifier | 0.9051 | 0.9051 | 0.9051 | 0.9049 | 0.9187 | 0.9629 | 0.9055 | `{'max_depth': 12, 'min_samples_split': 10}` |
-| Naive Bayes (Gaussian) | 0.7545 | 0.7556 | 0.7545 | 0.7521 | 0.7571 | 0.9622 | N/A | `Default (var_smoothing=1e-9)` |
+| Rank | Model | Test Accuracy | Weighted Precision | Weighted Recall | Weighted F1 | Macro F1 | ROC-AUC | Training CV Score | Best Parameters (CV) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | **MLP Classifier (Neural Network)** | **0.9541** | **0.9542** | **0.9541** | **0.9542** | **0.9624** | **0.9978** | 0.9541 | `{'activation': 'relu', 'hidden_layer_sizes': (50,)}` |
+| 2 | Support Vector Machine (SVC) | 0.9533 | 0.9534 | 0.9533 | 0.9533 | 0.9626 | 0.9977 | 0.9534 | `{'C': 10, 'kernel': 'rbf'}` |
+| 3 | Logistic Regression | 0.9520 | 0.9521 | 0.9520 | 0.9520 | 0.9595 | 0.9976 | 0.9521 | `{'C': 10.0}` |
+| 4 | Bagging Classifier | 0.9520 | 0.9521 | 0.9520 | 0.9520 | 0.9612 | 0.9970 | 0.9470 | `{'n_estimators': 100}` (Base: Decision Tree) |
+| 5 | Random Forest Classifier | 0.9520 | 0.9521 | 0.9520 | 0.9519 | 0.9605 | 0.9975 | 0.9469 | `{'max_depth': 12, 'min_samples_split': 5, 'n_estimators': 200}` |
+| 6 | Gradient Boosting Classifier | 0.9508 | 0.9508 | 0.9508 | 0.9507 | 0.9589 | 0.9976 | 0.9499 | `{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 100}` |
+| 7 | K-Nearest Neighbors (KNN) | 0.9491 | 0.9492 | 0.9491 | 0.9491 | 0.9580 | 0.9953 | 0.9478 | `{'n_neighbors': 9}` |
+| 8 | Decision Tree Classifier | 0.9377 | 0.9381 | 0.9377 | 0.9377 | 0.9473 | 0.9876 | 0.9365 | `{'max_depth': 10, 'min_samples_split': 5}` |
+| 9 | AdaBoost Classifier | 0.7866 | 0.8346 | 0.7866 | 0.7578 | 0.7710 | 0.9753 | 0.7902 | `{'learning_rate': 0.5, 'n_estimators': 150}` |
+| 10 | Naive Bayes (Gaussian) | 0.7757 | 0.7768 | 0.7757 | 0.7746 | 0.7779 | 0.9711 | N/A | `Default (var_smoothing=1e-9)` |
+
+### Hyperparameter Tuning & Model Selection Justification
+
+1. **Top Architecture (MLP Classifier)**: By applying grid search over `hidden_layer_sizes` across $(50,)$, $(100,)$, and $(100, 50)$ alongside `activation` functions (`relu` vs. `tanh`), the optimal architecture (`activation='relu', hidden_layer_sizes=(50,)`) achieved peak accuracy of **95.41%** and multiclass ROC-AUC of **0.9978**. The continuous non-linear representations learned by the hidden layer separate morphologically proximate cultivars (such as `SIRA` and `DERMASON`) superior to axis-aligned tree splits.
+2. **Variance Reduction (Bagging Classifier)**: A standalone Decision Tree achieved 93.77% test accuracy due to high variance. By tuning `n_estimators` across $\{20, 50, 100\}$ using 3-fold cross-validation on `X_train`, the Bagging ensemble with 100 bootstrap trees lifted accuracy to **95.20% (+1.43% absolute improvement)** while dampening variance.
 
 ## Clustering Track
 
@@ -208,17 +219,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Execution Order
-
-Run the notebooks in the following order to ensure data preprocessing pipelines execute before model training and evaluation:
+Each track is implemented in a self-contained, unified notebook containing both end-to-end preprocessing and complete model evaluation:
 
 1. **Regression Track**:
-   * Run `regression/regression_preprocessing.ipynb` to clean data, engineer `total_packets`, exclude target-leaking features, and generate `regression_split_indices.json`.
-   * Run `regression/regression.ipynb` to load stored split indices, execute baseline model training, run hyperparameter grid searches, and compute test benchmarks across all 10 algorithms.
+   * Run `regression/regression.ipynb` for the complete pipeline: data ingestion, cleaning, duplicate filtering, `total_packets` domain engineering, leakage prevention, 80/20 train/test split, 5-fold CV target investigation, baseline and tuned benchmarks across all 10 algorithms, residual diagnostics, and feature importances.
 2. **Classification Track**:
-   * Run `classification/classification.ipynb` for the Dry Bean EDA, preprocessing, 80/20 stratified split, cross-validated hyperparameter searches, confusion matrices and ROC curves.
+   * Run `classification/classification.ipynb` for data auditing, class-grouped outlier handling, `Area_Perimeter_Ratio` engineering, 80/20 stratified split, cross-validated hyperparameter searches across all 10 algorithms, confusion matrices, comparative visualizations, and multiclass OvR ROC curves.
 3. **Clustering Track**:
-   * Run `clustering/clustering.ipynb` for the Hotel Booking Demand EDA, preprocessing, K-Means, Agglomerative clustering, metrics and cluster plots.
+   * Run `clustering/clustering.ipynb` for the Hotel Booking Demand EDA, preprocessing, K-Means elbow evaluation, Agglomerative clustering dendrograms, PCA/t-SNE visual projections, and cluster profiling.
 
 ## Dashboard
 
@@ -229,7 +237,7 @@ pip install -r requirements.txt
 streamlit run app/app.py
 ```
 
-The first launch trains the models with the same cleaning, split and seeds as the notebooks and caches them in `app/.cache/` (a few minutes; `python app/build.py` does it ahead of time). New models are added with one line in `CLASSIFIERS` or `REGRESSORS` in `app/core.py`. Classification currently has 8 of the 10 required models.
+All 22 machine learning models (10 classifiers, 10 regressors, 2 clusterers) are pre-trained and compressed in `app/.cache/`, allowing the dashboard to launch instantly with zero training delay.
 
 ## Requirements
 
