@@ -43,7 +43,7 @@ def cached(name, build):
     if path.exists():
         return joblib.load(path)
     out = build()
-    joblib.dump(out, path)
+    joblib.dump(out, path, compress=3)
     return out
 
 
