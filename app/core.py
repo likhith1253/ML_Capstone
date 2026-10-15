@@ -14,8 +14,9 @@ from scipy.cluster.hierarchy import linkage
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
-from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingClassifier, GradientBoostingRegressor,
+from sklearn.ensemble import (AdaBoostClassifier, BaggingClassifier, GradientBoostingClassifier, GradientBoostingRegressor,
                               RandomForestClassifier, RandomForestRegressor)
+from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, LogisticRegression, Ridge
 from sklearn.manifold import TSNE
 from sklearn.metrics import (accuracy_score, calinski_harabasz_score, davies_bouldin_score, f1_score,
@@ -56,11 +57,14 @@ CLASSIFIERS = {
     "SVM (RBF)": (lambda: SVC(C=10, kernel="rbf", probability=True, random_state=SEED), True),
     "Random Forest": (lambda: RandomForestClassifier(n_estimators=200, max_depth=16, min_samples_split=2,
                                                      random_state=SEED, n_jobs=-1), False),
-    "AdaBoost": (lambda: AdaBoostClassifier(n_estimators=150, learning_rate=0.5, algorithm="SAMME", random_state=SEED), False),
+    "AdaBoost": (lambda: AdaBoostClassifier(n_estimators=150, learning_rate=0.5, random_state=SEED), False),
     "Gradient Boosting": (lambda: GradientBoostingClassifier(n_estimators=150, learning_rate=0.1, max_depth=4,
                                                              random_state=SEED), False),
+    "Bagging Classifier": (lambda: BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=10, min_samples_split=5, random_state=SEED),
+                                                     n_estimators=100, random_state=SEED), False),
+    "MLP Classifier": (lambda: MLPClassifier(hidden_layer_sizes=(50,), activation="relu", max_iter=300, random_state=SEED), True),
 }
-PENDING_CLASSIFIERS = ["Bagging Classifier", "MLP Classifier"]
+PENDING_CLASSIFIERS = []
 
 
 def load_beans():
