@@ -1,6 +1,20 @@
-# ML Capstone
+# ML Capstone: Regression, Classification and Clustering on Real Datasets
+
+[![tests](https://github.com/likhith1253/ML_Capstone/actions/workflows/ci.yml/badge.svg)](https://github.com/likhith1253/ML_Capstone/actions/workflows/ci.yml)
 
 This repository contains the Machine Learning Capstone project for course 23CSE301. It covers the regression, classification and clustering tracks on three datasets: the RT-IoT2022 network traffic dataset for predicting flow duration, the UCI Dry Bean dataset for classifying bean varieties, and the Hotel Booking Demand dataset for clustering bookings. In every pipeline the scalers and encoders are fitted on the training data only, hyperparameters are tuned with cross-validation on the training set, and the models are scored on a held-out test set.
+
+## Results at a glance
+
+All numbers below are copied from the executed notebooks in this repository (the track sections have the full tables).
+
+| Track | Dataset | Best model | Headline result |
+|---|---|---|---|
+| Regression | RT-IoT2022 (117,922 flows) | Decision Tree | Test R² 0.6210, RMSE 36.12 s, MAE 1.32 s |
+| Classification | UCI Dry Bean (7 classes) | MLP (50 hidden units) | Test accuracy 95.41 %, macro F1 0.9624 |
+| Clustering | Hotel Booking Demand (15,000 sampled bookings) | no clear winner | K-Means k=4 silhouette 0.2087; Agglomerative (Ward) 0.4529 |
+
+See [Limitations](#limitations) before reading these as production-quality results.
 
 ## Project Structure
 
@@ -28,7 +42,7 @@ ML_Capstone/
 │   ├── hotel_bookings.csv
 │   ├── Dry_Bean_Dataset.csv
 │   ├── RT_IOT2022
-│   └── RT_IOT2022_cleaned.csv
+│   └── RT_IOT2022_cleaned.csv   (generated, not tracked)
 ├── regression/
 │   ├── regression.ipynb
 │   └── regression_split_indices.json
@@ -37,16 +51,23 @@ ML_Capstone/
 │   ├── build.py
 │   ├── core.py
 │   ├── theme.py
-│   ├── pages_*.py
-│   └── .cache/
+│   └── pages_*.py
+├── scripts/
+│   └── download_data.py
+├── tests/
+├── .github/workflows/ci.yml
+├── LICENSE
 ├── README.md
 └── requirements.txt
 ```
 
 ## Datasets
 
-* **Regression Dataset**: `RT_IOT2022_cleaned.csv` (RT-IoT2022 network traffic dataset), containing 117,922 cleaned records and 83 network attributes derived from real-world IoT device traffic.
-* **Classification Dataset**: `Dry_Bean_Dataset.csv` (UCI Dry Bean Dataset), containing 13,543 cleaned records and 17 morphological features extracted from high-resolution seed images across 7 dry bean varieties.
+All three datasets are public. `scripts/download_data.py` fetches them and rebuilds the derived cleaned file:
+
+* **Regression**: [RT-IoT2022](https://archive.ics.uci.edu/dataset/942/rt-iot2022) (UCI, CC BY 4.0). 123,117 raw rows x 85 columns; `data/RT_IOT2022_cleaned.csv` has 117,922 rows x 83 columns after dropping the index column, one constant column and duplicates. The cleaned file is generated, not tracked.
+* **Classification**: [Dry Bean Dataset](https://archive.ics.uci.edu/dataset/602/dry+bean+dataset) (UCI, CC BY 4.0). 13,611 rows, 16 shape features plus the class label, 7 varieties.
+* **Clustering**: Hotel Booking Demand (Antonio, Almeida and Nunes, 2019, *Data in Brief*), 119,390 rows x 32 columns, taken from the [TidyTuesday mirror](https://github.com/rfordatascience/tidytuesday/tree/master/data/2020/2020-02-11) (2020-02-11).
 
 ## Regression Track
 
@@ -122,17 +143,17 @@ Cross-validation metrics for the top two regression models, computed on quantile
 
 ## Classification Track
 
-The classification track categorizes 7 registered dry bean cultivars using high-resolution image morphometry from `Dry_Bean_Dataset.csv`. Starting with 13,611 raw records, data cleaning removed 68 exact duplicate rows (0.50%), retaining 13,543 cleaned samples across 17 features. No global outlier filter was applied, so large-seeded varieties such as `BOMBAY` were kept. An engineered geometric descriptor, `Area_Perimeter_Ratio` (`Area / Perimeter`), was incorporated. A stratified 80/20 train/test split yielded 10,834 training samples and 2,709 held-out test samples, with `StandardScaler` fitted strictly on `X_train`.
+The classification track categorizes 7 registered dry bean cultivars using high-resolution image morphometry from `Dry_Bean_Dataset.csv`. Starting with 13,611 raw records, cleaning removed 68 exact duplicate rows (13,543 left) and then 1,665 rows flagged by a per-class 1.5 x IQR outlier rule (applied within each variety, so large-seeded varieties such as `BOMBAY` are not wiped out), leaving 11,878 samples. An engineered geometric descriptor, `Area_Perimeter_Ratio` (`Area / Perimeter`), was added (17 features). A stratified 80/20 train/test split yielded 9,502 training samples and 2,376 held-out test samples, with `StandardScaler` fitted strictly on the training split.
 
-### Final Class Breakdown (13,543 Cleaned Records)
+### Final Class Breakdown (11,878 Cleaned Records)
 
-* **DERMASON**: 3,546 samples (26.18%)
-* **SIRA**: 2,636 samples (19.46%)
-* **SEKER**: 2,027 samples (14.97%)
-* **HOROZ**: 1,860 samples (13.73%)
-* **CALI**: 1,630 samples (12.04%)
-* **BARBUNYA**: 1,322 samples (9.76%)
-* **BOMBAY**: 522 samples (3.85%)
+* **DERMASON**: 3,146 samples (26.49%)
+* **SIRA**: 2,351 samples (19.79%)
+* **SEKER**: 1,730 samples (14.56%)
+* **HOROZ**: 1,558 samples (13.12%)
+* **CALI**: 1,470 samples (12.38%)
+* **BARBUNYA**: 1,159 samples (9.76%)
+* **BOMBAY**: 464 samples (3.91%)
 
 The Multi-Layer Perceptron (MLP) Classifier delivered the highest overall accuracy on the held-out test set, attaining **95.41% Test Accuracy**, **0.9542 Weighted F1**, **0.9624 Macro F1**, and **0.9978 Multiclass ROC-AUC**.
 
@@ -213,11 +234,14 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 3. Install Dependencies and Get the Data
 
 ```bash
 pip install -r requirements.txt
+python scripts/download_data.py      # fetches missing raw files, rebuilds data/RT_IOT2022_cleaned.csv
 ```
+
+The raw files are also tracked in `data/`, but the cleaned RT-IoT2022 file is generated, so run the script once after cloning. Run the tests with `pip install pytest && python -m pytest tests`.
 
 Each track is implemented in a self-contained, unified notebook containing both end-to-end preprocessing and complete model evaluation:
 
@@ -234,10 +258,11 @@ An interactive Streamlit dashboard for all three tracks lives in `app/`. It has 
 
 ```bash
 pip install -r requirements.txt
+python scripts/download_data.py
 streamlit run app/app.py
 ```
 
-All 22 machine learning models (10 classifiers, 10 regressors, 2 clusterers) are pre-trained and compressed in `app/.cache/`, allowing the dashboard to launch instantly with zero training delay.
+The models (10 classifiers, 10 regressors, 2 clusterers) are trained lazily: the first time a page is opened the dashboard trains that track and caches it in `app/.cache/` (git-ignored, keyed by scikit-learn version). On a CPU laptop a cold start of all three tracks took about 9.5 minutes (`python app/build.py` does it up front); later launches load the cache. The classification page uses the best hyperparameters found in the notebook and reproduces the notebook's test metrics for the models checked (Random Forest, Gradient Boosting, Bagging). The regression page re-trains with its own pipeline, so its numbers can differ from the notebook (for example Decision Tree R² 0.641 on the dashboard vs 0.621 in the notebook).
 
 ## Requirements
 
@@ -251,6 +276,7 @@ Project dependencies are specified in `requirements.txt`. Key packages include:
 * `ipympl` (>= 0.9.0)
 * `ipython` (>= 8.0.0)
 * `scipy` (>= 1.10.0)
+* `streamlit`, `plotly`, `joblib`, `openpyxl` (dashboard and data download)
 
 ## Team
 
@@ -264,3 +290,19 @@ Project dependencies are specified in `requirements.txt`. Key packages include:
 * **Stratified folds for a continuous target**: Used quantile target binning (`pd.qcut`) on `y_train` to enable 5-fold `StratifiedKFold` cross-validation for a highly right-skewed regression target ($121.03$ skewness).
 * **Keeping large bean varieties**: No global IQR filter is applied in the modelling notebook, since it would remove large beans such as `BOMBAY`. `StandardScaler` is fitted on the training split only.
 * **Engineered features**: Added `total_packets` (`fwd_pkts_tot + bwd_pkts_tot`) for IoT flow duration and `Area_Perimeter_Ratio` (`Area / Perimeter`) for seed morphometry.
+
+## Limitations
+
+These points come from the notebook outputs and are worth knowing before drawing conclusions.
+
+* **"Tuned" Gradient Boosting is identical to the baseline.** The grid for the Gradient Boosting Regressor only searched `learning_rate` and selected 0.1, the baseline value, so tuned and baseline test metrics are the same (R² -0.1466, RMSE 62.82 s, MAE 1.98 s). Tuning did not help that model, and depth and number of trees were not tuned.
+* **The regression headline comes from one train/test split.** The Decision Tree's test R² of 0.621 is a single split; its 5-fold cross-validated R² on the training set ranges from 0.516 to 0.931 (mean 0.682 +/- 0.180), so the score is unstable. Only 2 of 10 regressors reach a positive test R² (Decision Tree 0.62, Random Forest tuned 0.37); most linear and kernel models are far worse than predicting the mean.
+* **The target is heavy-tailed.** `flow_duration` has a skewness of about 121. The best model's RMSE (36.12 s) is roughly 27 times its MAE (1.32 s): it is accurate for typical short flows and badly wrong on a few very long ones, and R² and RMSE are dominated by those rare flows.
+* **The best clustering score comes from a lopsided partition.** Agglomerative (Ward, 4 clusters) has the best silhouette (0.4529) but one cluster holds 13,707 of the 15,000 sampled bookings (91.4 %); K-Means' largest cluster holds 85.4 %. The metrics disagree (K-Means has the higher Calinski-Harabasz score) and the elbow curve has no clear bend, so k=4 is a judgement call, not a finding. Clustering uses a 15,000-booking random sample, not all 87,229 cleaned rows.
+* **Classification scores are close to each other.** The top seven models are within about 0.5 percentage points of one another on a single 2,376-row test split, so their ranking is not statistically meaningful. AdaBoost and Gaussian Naive Bayes are clearly worse (about 78 %).
+* **Dashboard vs notebook.** The regression page does not exactly reproduce the notebook (see Dashboard).
+* Notebooks keep their executed outputs because most of their figures are not exported to `assets/`.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The datasets keep their original licences.

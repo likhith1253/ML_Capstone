@@ -10,6 +10,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from scipy.cluster.hierarchy import linkage
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.compose import ColumnTransformer
@@ -33,15 +34,25 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 CACHE = Path(__file__).resolve().parent / ".cache"
-CACHE.mkdir(exist_ok=True)
 SEED = 42
 
 
+def ensure_data(*names):
+    """Raise a helpful error when a dataset has not been downloaded yet."""
+    missing = [n for n in names if not (DATA / n).exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing {', '.join(missing)} in {DATA}. Run: python scripts/download_data.py")
+
+
 def cached(name, build):
-    """Build once, keep on disk so later launches are instant."""
-    path = CACHE / f"{name}.joblib"
+    """Build once, keep on disk so later launches are instant.
+
+    The file name carries the scikit-learn version because pickled estimators are not portable across versions.
+    """
+    path = CACHE / f"{name}-sk{sklearn.__version__}.joblib"
     if path.exists():
         return joblib.load(path)
+    CACHE.mkdir(exist_ok=True)
     out = build()
     joblib.dump(out, path, compress=3)
     return out
@@ -55,12 +66,12 @@ CLASSIFIERS = {
     "Decision Tree": (lambda: DecisionTreeClassifier(max_depth=10, min_samples_split=5, random_state=SEED), False),
     "Naive Bayes": (lambda: GaussianNB(), False),
     "SVM (RBF)": (lambda: SVC(C=10, kernel="rbf", probability=True, random_state=SEED), True),
-    "Random Forest": (lambda: RandomForestClassifier(n_estimators=200, max_depth=16, min_samples_split=2,
+    "Random Forest": (lambda: RandomForestClassifier(n_estimators=200, max_depth=12, min_samples_split=5,
                                                      random_state=SEED, n_jobs=-1), False),
     "AdaBoost": (lambda: AdaBoostClassifier(n_estimators=150, learning_rate=0.5, random_state=SEED), False),
-    "Gradient Boosting": (lambda: GradientBoostingClassifier(n_estimators=150, learning_rate=0.1, max_depth=4,
+    "Gradient Boosting": (lambda: GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3,
                                                              random_state=SEED), False),
-    "Bagging Classifier": (lambda: BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=10, min_samples_split=5, random_state=SEED),
+    "Bagging Classifier": (lambda: BaggingClassifier(estimator=DecisionTreeClassifier(random_state=SEED),
                                                      n_estimators=100, random_state=SEED), False),
     "MLP Classifier": (lambda: MLPClassifier(hidden_layer_sizes=(50,), activation="relu", max_iter=300, random_state=SEED), True),
 }
@@ -68,6 +79,7 @@ PENDING_CLASSIFIERS = []
 
 
 def load_beans():
+    ensure_data("Dry_Bean_Dataset.csv")
     df = pd.read_csv(DATA / "Dry_Bean_Dataset.csv").drop_duplicates()
     cols = df.select_dtypes("number").columns
 
@@ -119,6 +131,7 @@ POLY_FEATURES = ["fwd_pkts_tot", "bwd_pkts_tot", "fwd_header_size_tot", "bwd_hea
 
 
 def load_flows():
+    ensure_data("RT_IOT2022_cleaned.csv")
     df = pd.read_csv(DATA / "RT_IOT2022_cleaned.csv")
     split = json.load(open(ROOT / "regression" / "regression_split_indices.json", encoding="utf-8"))
     drop = [c for c in df.columns if "iat" in c.lower() or c.startswith(LEAK_PREFIX)]
@@ -207,6 +220,7 @@ def _hotel_matrix(frame, fit=None):
 
 
 def _build_clustering():
+    ensure_data("hotel_bookings.csv")
     df = pd.read_csv(DATA / "hotel_bookings.csv").drop_duplicates()
     df = df[(df["adults"] + df["children"].fillna(0) + df["babies"]) > 0]
     df = df[df["adr"] >= 0]
